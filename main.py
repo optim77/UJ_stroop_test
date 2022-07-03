@@ -5,22 +5,16 @@ import codecs
 import csv
 import os
 import random
+import time
 from os.path import join
 from statistics import mean
 import yaml
+from datetime import datetime
 from psychopy import visual, event, logging, gui, core
 
 from misc.screen_misc import get_screen_res, get_frame_rate
 from itertools import combinations_with_replacement, product
 
-"""
-    @TODO:
-    1. Refactor third instruction - first phrase is wrong
-    2. Fixation cross?
-    3. How to measure frame rate
-    4. Is wait for key should be in for loop? 
-    5. Change amount of repeats
-"""
 
 def get_participant_id():
     participant_info = dict()
@@ -31,13 +25,18 @@ def get_participant_id():
     return participant_info['Participant ID']
 
 
+def get_now_data():
+    now = datetime.now()
+    return str(now.strftime("___%m-%d-%Y___%H-%M-%S"))
+
+
 @atexit.register
 def save_beh_results():
     """
     Save results of experiment. Decorated with @atexit in order to make sure, that intermediate
     results will be saved even if interpreter will broke.
     """
-    with open(join('results', PART_ID + '_' + str(random.choice(range(100, 1000))) + '_beh.csv'), 'w',
+    with open(join('results', PART_ID + get_now_data() + '.csv'), 'w',
               encoding='utf-8') as beh_file:
         beh_writer = csv.writer(beh_file)
         beh_writer.writerows(RESULTS)
@@ -63,6 +62,7 @@ def show_image(win, file_name, key='f7'):
 
 def read_text_from_file(file_name, insert=''):
     """
+    KOSZ
     Method that read message from text file, and optionally add some
     dynamically generated info.
     :param file_name: Name of file to read
@@ -86,6 +86,7 @@ def read_text_from_file(file_name, insert=''):
 
 def check_exit(key='f7'):
     """
+    KOSZ
     Check (during procedure) if experimentator doesn't want to terminate.
     """
     stop = event.getKeys(keyList=[key])
@@ -120,17 +121,27 @@ def abort_with_error(err):
     raise Exception(err)
 
 
-# GLOBALS
+def check_framerate(win, conf):
+    frame_rate = get_frame_rate(win)
+    if frame_rate != conf['FRAME_RATE']:
+        logging.info('FRAME RATE: {}'.format(frame_rate))
+        dlg = gui.Dlg(title="Critical error")
+        dlg.addText(
+            'Wrong no of frames detected: {}. Experiment terminated.'.format(frame_rate))
+        dlg.show()
+        return None
 
-RESULTS = list()  # list in which data will be colected
-RESULTS.append(['PART_ID', 'Trial_no', 'RT', 'Correctness', 'Trial'])  # ... Results header
+RESULTS = list()  # list in which data will be collected
+# Results header
+RESULTS.append(['PART_ID', 'Trial', 'RT', 'Correctness', 'Trial_no', 'Stimuli', 'Congruency', 'Key'])
 
 
 def main():
     global PART_ID  # PART_ID is used in case of error on @atexit, that's why it must be global
 
     # === Dialog popup ===
-    info = {'IDENTYFIKATOR': '', u'P\u0141EC': ['M', "K"], 'WIEK': '20'}
+    info = {'IDENTYFIKATOR': ''}
+
     dict_dlg = gui.DlgFromDict(
         dictionary=info, title='Multilanguage Stroop')
     if not dict_dlg.OK:
@@ -145,70 +156,87 @@ def main():
                         monitor='testMonitor', units='pix', screen=0, color=conf['BACKGROUND_COLOR'])
     event.Mouse(visible=False, newPos=None, win=win)  # Make mouse invisible
 
-    # have to figure out how to measure framerate because now it is not working
-    # frame_rate = get_frame_rate(win)
-    # print(frame_rate)
-    # # check if a detected frame rate is consistent with a frame rate for witch experiment was designed
-    # # important only if miliseconds precision design is used
-    # if FRAME_RATE != conf['FRAME_RATE']:
-    #     dlg=gui.Dlg(title="Critical error")
-    #     dlg.addText(
-    #         'Wrong no of frames detected: {}. Experiment terminated.'.format(FRAME_RATE))
-    #     dlg.show()
-    #     return None
+    # calling this function sometimes crash app
+    #check_framerate(win, conf)
 
-    PART_ID = info['IDENTYFIKATOR'] + info[u'P\u0141EC'] + info['WIEK']
+    PART_ID = info['IDENTYFIKATOR']
     logging.LogFile(join('results', PART_ID + '.log'),
                     level=logging.INFO)  # errors logging
-    # logging.info('FRAME RATE: {}'.format(FRAME_RATE))
+
     logging.info('SCREEN RES: {}'.format(SCREEN_RES.values()))
 
+    # showing start message
     show_info(win, join('.', 'messages', 'hello.txt'))
 
+    # showing instruction
     show_image(win, 'images/InstrukcjaTrening.png')
 
     # Run trainee session
-    win.flip()
     #run_trainee(win, conf, lang=0)
 
     # time for break
     show_image(win, 'images/break.jpg')
 
-    # Run experiment session
+    # Run experiment session, random between russian and polish session
     win.flip()
     run_experiment(win, conf, random.randint(0, 1))
-
     save_beh_results()
     logging.flush()
     show_info(win, join('.', 'messages', 'end.txt'))
     win.close()
 
 
-def draw_hints(win, conf, lang):
+def draw_hints(win, conf, lang, is_cross):
     if lang == 0:
-        red_pl = visual.TextStim(win, text='d = czerwony', color="#" + conf["RED"], pos=(-300, 200))
-        green_pl = visual.TextStim(win, text='f = zielony', color="#" + conf["GREEN"], pos=(-100, 200))
-        blue_pl = visual.TextStim(win, text='j = niebieski', color="#" + conf["BLUE"], pos=(100, 200))
-        pink_pl = visual.TextStim(win, text="k = ró\u017Cowy", color="#" + conf["PINK"], pos=(300, 200))
+        red_pl = visual.TextStim(win, text='d = czerwony', color="#" + conf["RED"],
+                                 pos=(-450, 400), height=conf['FONT_SIZE_INT'])
+        green_pl = visual.TextStim(win, text='f = zielony', color="#" + conf["GREEN"],
+                                   pos=(-150, 400), height=conf['FONT_SIZE_INT'])
+        blue_pl = visual.TextStim(win, text='j = niebieski', color="#" + conf["BLUE"],
+                                  pos=(150, 400), height=conf['FONT_SIZE_INT'])
+        pink_pl = visual.TextStim(win, text="k = ró\u017Cowy", color="#" + conf["PINK"],
+                                  pos=(450, 400), height=conf['FONT_SIZE_INT'])
+        red_pl.autoDraw = True
+        green_pl.autoDraw = True
+        blue_pl.autoDraw = True
+        pink_pl.autoDraw = True
         red_pl.draw()
         green_pl.draw()
         blue_pl.draw()
         pink_pl.draw()
+        if is_cross == 1:
+            draw_cross(win, conf)
     elif lang == 1:
         red_rus = visual.TextStim(win, text='d = \u043A\u0440\u0430\u0441\u043D\u044B\u0439',
-                                  color="#" + conf["RED"], pos=(-300, 200))
+                                  color="#" + conf["RED"], pos=(-450, 400), height=conf['FONT_SIZE_INT'])
         green_rus = visual.TextStim(win, text='f = \u0437\u0435\u043B\u0455\u043D\u044B\u0439',
-                                    color="#" + conf["GREEN"], pos=(-100, 200))
-        # seventh char crashing program (\u0301) so i deleted it
+                                    color="#" + conf["GREEN"], pos=(-150, 400), height=conf['FONT_SIZE_INT'])
+        # seventh char is crashing the program (\u0301) so i deleted it (Bartek)
         blue_rus = visual.TextStim(win, text='j = \u0433\u043e\u043b\u0443\u0431\u043e\u0439',
-                                   color="#" + conf["BLUE"], pos=(100, 200))
-        # as above, \u0301 should be third in row
+                                   color="#" + conf["BLUE"], pos=(150, 400), height=conf['FONT_SIZE_INT'])
+        # as above, \u0301 should be the third one in a row
         pink_rus = visual.TextStim(win, text='k = \u0440\u043e\u0437\u043e\u0432\u044b\u0439',
-                                   color="#" + conf["PINK"], pos=(300, 200))
+                                   color="#" + conf["PINK"], pos=(450, 400), height=conf['FONT_SIZE_INT'])
+        red_rus.autoDraw = True
+        green_rus.autoDraw = True
+        blue_rus.autoDraw = True
+        pink_rus.autoDraw = True
         red_rus.draw()
         green_rus.draw()
         blue_rus.draw()
         pink_rus.draw()
+        if is_cross == 1:
+            draw_cross(win, conf)
+
+
+def draw_cross(win, conf):
+    cross = visual.TextStim(win, text='+', height=conf['CROSS_SIZE_INT'], color='black')
+    cross.autoDraw = True
+    win.flip()
+    cross.draw()
+    timer(1, conf['FIX_CROSS_TIME'])
+    win.flip()
+    cross.autoDraw = False
 
 
 def run_trainee(win, conf, lang):
@@ -216,15 +244,15 @@ def run_trainee(win, conf, lang):
     colors = conf['COLORS_ARRAY_HEX']
     # Start loop for certain amount of trials
     for i in range(conf['TRAINEE_SESSIONS_TRIALS_INT']):
-        win.flip()
-        # display hints in polish
-        draw_hints(win, conf, lang)
-        win.callOnFlip(clock.reset)
         # get random word from adjectives array
         text = random.choice(conf['ADJECTIVES'])
         color = random.choice(colors)
         # draw word in the screen
-        adjective = visual.TextStim(win, text=text, color="#" + color)
+        win.callOnFlip(clock.reset)
+        # because of winflip we repeat draw_hints in every loop, which is not optimal (Bartek)
+        draw_cross(win, conf)
+        draw_hints(win, conf, lang, 0)
+        adjective = visual.TextStim(win, text=text, color="#" + color, height=conf['FONT_SIZE_STIM_INT'])
         adjective.autoDraw = False
         adjective.draw()
         win.flip()
@@ -235,27 +263,33 @@ def run_trainee(win, conf, lang):
         if (key is not None) and str(conf["MAPPING"][key[0][0]]) == str("#" + color):
             win.flip()
             correct = visual.TextStim(win, text="\u2713", color='green')
-            for frames in range(int(conf['FRAME_RATE'] * conf['SHOW_RESULTS_S'])):
-                correct.draw()
+            correct.autoDraw = True
+            win.flip()
+            correct.draw()
+            timer(1, conf['SHOW_RESULTS_S'])
+            win.flip()
             correctness = 1
+            correct.autoDraw = False
             win.flip()
         else:
             win.flip()
-            error = visual.TextStim(win, text='\u26A0', color='red')
-            error.autoDraw = False
+            error = visual.TextStim(win, text='X', color='red')
+            error.autoDraw = True
+            win.flip()
             error.draw()
-            print(conf['FRAME_RATE'] * conf['SHOW_RESULTS_S'])
-            for frames in range(int(conf['FRAME_RATE'] * conf['SHOW_RESULTS_S'])):
-                error.draw()
+            timer(1, conf['SHOW_RESULTS_S'])
             correctness = 0
+            error.autoDraw = False
             win.flip()
         # add results to the file
         RESULTS.append([PART_ID, 'trainee', round(key[0][1],
-                                                  conf['DIGIT_AFTER_COMA_RESULTS_INT']) if key else 0,
-                        correctness, i + 1])
+                        conf['DIGIT_AFTER_COMA_RESULTS_INT']) if key else 0,
+                        correctness, i + 1, color,
+                       'true' if (key is not None) and str(conf["MAPPING"][key[0][0]]) == str("#" + color) else 'false',
+                        key[0][0] if key is not None else 'not pressed'])
         # wait certain amount of time to go back to next trial
-        for frames in range(int(conf['FRAME_RATE'] * conf['WAIT_TO_NEXT_TRIALS_S'])):
-            win.flip()
+        timer(1, conf['WAIT_TO_NEXT_TRIALS_S'])
+        win.flip()
 
 
 def run_experiment(win, conf, first):
@@ -265,6 +299,7 @@ def run_experiment(win, conf, first):
         show_image(win, 'images/Instrukcja1.png')
         engine(win, conf, db, first)
         show_image(win, 'images/break.jpg')
+        win.flip()
         db = create_color_db(conf, first + 1)
         engine(win, conf, db, first + 1)
     else:
@@ -272,6 +307,7 @@ def run_experiment(win, conf, first):
         show_image(win, 'images/Instrukcja2.png')
         engine(win, conf, db, first)
         show_image(win, 'images/break.jpg')
+        win.flip()
         db = create_color_db(conf, first - 1)
         engine(win, conf, db, first - 1)
 
@@ -285,8 +321,6 @@ def create_color_db(conf, first):
     """
     db = []
     for k in range(conf['REPEATS_OF_COLOR_IN_TRIALS_INT']):
-       # for l in range(len(conf['COLORS_ARRAY_HEX'])):
-            #db.append([conf['COLORS_ARRAY_HEX'][l], conf['COLORS_PL_ARRAY'][l]])
         if first == 0:
             for i in range(len(conf['COLORS_PL_ARRAY'])):
                 for j in range(len(conf['COLORS_ARRAY_HEX'])):
@@ -305,38 +339,63 @@ def create_color_db(conf, first):
 
 
 def engine(win, conf, db, first):
+    # Clearing clock just in case
     clock = core.Clock()
     for i in range(len(db)):
         win.flip()
         win.callOnFlip(clock.reset)
-        draw_hints(win, conf, first)
-        word = visual.TextStim(win, text=db[i][1], color="#" + db[i][0])
+        draw_cross(win, conf)
+        draw_hints(win, conf, first, 0)
+        word = visual.TextStim(win, text=db[i][1], color="#" + db[i][0], height=conf['FONT_SIZE_STIM_INT'])
         word.autoDraw = False
         word.draw()
         win.flip()
         key = event.waitKeys(keyList=list(
             conf['REACTION_KEYS']), timeStamped=clock, maxWait=conf['WAIT_FOR_KEY_S'])
         if (key is not None) and str(conf["MAPPING"][key[0][0]]) == str("#" + db[i][0]):
-            win.flip()
-            correct = visual.TextStim(win, text="\u2713", color='green')
-            for frames in range(int(conf['FRAME_RATE'] * conf['SHOW_RESULTS_S'])):
-                correct.draw()
+            #win.flip()
+            #correct = visual.TextStim(win, text="\u2713", color='green')
+            #correct.autoDraw = True
+            #win.flip()
+            #correct.draw()
+            timer(1, conf['SHOW_RESULTS_S'])
+            #win.flip()
             correctness = 1
-            win.flip()
+            #correct.autoDraw = False
+            #win.flip()
         else:
-            win.flip()
-            error = visual.TextStim(win, text='\u26A0', color='red')
-            error.autoDraw = False
-            for frames in range(int(conf['FRAME_RATE'] * conf['SHOW_RESULTS_S'])):
-                error.draw()
+            #win.flip()
+           # error = visual.TextStim(win, text='X', color='red')
+           # error.autoDraw = True
+            #win.flip()
+            #error.draw()
+            timer(1, conf['SHOW_RESULTS_S'])
             correctness = 0
-            win.flip()
+            #error.autoDraw = False
+            #win.flip()
         RESULTS.append([PART_ID, 'PL' if first == 0 else 'RUS',
                         round(key[0][1], conf['DIGIT_AFTER_COMA_RESULTS_INT']) if key else 0,
                         correctness, i + 1])
         # wait certain amount of time to go back to next trial
-        for frames in range(int(conf['FRAME_RATE'] * conf['WAIT_TO_NEXT_TRIALS_S'])):
-            win.flip()
+        timer(1, conf['WAIT_TO_NEXT_TRIALS_S'])
+        win.flip()
+
+
+def timer(counter, seconds, command='pass'):
+    """
+        There is two types of time counter
+        Type zero is the most correct but on some computers in this way time is not counted well
+        Therefore, you can choose type one which is not as accurate as zero however does not cause as many problems
+        """
+
+    if counter == 0:
+        for frames in range(int(60 * seconds)):
+            exec(command)
+    elif counter == 1:
+        clock = core.Clock()
+        clock.add(seconds)
+        while clock.getTime() < 0:
+            pass
 
 
 if __name__ == '__main__':

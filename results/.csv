@@ -1,0 +1,8 @@
+PART_ID,Trial,RT,Correctness,Trial_no,Stimuli,Congruency,Key
+,trainee,0.42,0,1,da4bbb,false,d
+,trainee,0.56,1,2,ff0000,true,d
+,trainee,0.54,0,3,da4bbb,false,f
+,trainee,0.48,0,4,6060ff,false,d
+,trainee,0.45,0,5,da4bbb,false,d
+,trainee,0.57,1,6,ff0000,true,d
+,trainee,0.69,0,7,90ee90,false,d
