@@ -54,6 +54,7 @@ def show_image(win, file_name, key='f7'):
     image.draw()
     win.flip()
     clicked = event.waitKeys(keyList=[key, 'space'])
+    win.flip()
     if clicked == [key]:
         logging.critical(
             'Experiment finished by user! {} pressed.'.format(key[0]))
@@ -169,14 +170,15 @@ def main():
     show_info(win, join('.', 'messages', 'hello.txt'))
 
     # showing instruction
+
     show_image(win, 'images/InstrukcjaTrening.png')
 
     # Run trainee session
-    #run_trainee(win, conf, lang=0)
-
+    run_trainee(win, conf, lang=0)
+    win.flip()
     # time for break
-    show_image(win, 'images/break.jpg')
-
+    draw_hints(win, conf, 'refresh')
+    show_image(win, 'images/break.png')
     # Run experiment session, random between russian and polish session
     win.flip()
     run_experiment(win, conf, random.randint(0, 1))
@@ -186,47 +188,46 @@ def main():
     win.close()
 
 
-def draw_hints(win, conf, lang, is_cross):
+def draw_hints(win, conf, lang):
+    """
+        Hints in txt for any reason
+        There is some problems with autoDraw in text so we use image hints which replace hints in second language
+    """
+    red_pl = visual.TextStim(win, text='d = czerwony', color="#" + conf["RED"],
+                             pos=(-450, 400), height=conf['FONT_SIZE_INT'])
+    green_pl = visual.TextStim(win, text='f = zielony', color="#" + conf["GREEN"],
+                               pos=(-150, 400), height=conf['FONT_SIZE_INT'])
+    blue_pl = visual.TextStim(win, text='j = niebieski', color="#" + conf["BLUE"],
+                              pos=(150, 400), height=conf['FONT_SIZE_INT'])
+    pink_pl = visual.TextStim(win, text="k = ró\u017Cowy", color="#" + conf["PINK"],
+                              pos=(450, 400), height=conf['FONT_SIZE_INT'])
+    red_rus = visual.TextStim(win, text='d = \u043A\u0440\u0430\u0441\u043D\u044B\u0439',
+                              color="#" + conf["RED"], pos=(-450, 400), height=conf['FONT_SIZE_INT'])
+    green_rus = visual.TextStim(win, text='f = \u0437\u0435\u043B\u0455\u043D\u044B\u0439',
+                                color="#" + conf["GREEN"], pos=(-150, 400), height=conf['FONT_SIZE_INT'])
+    # seventh char is crashing the program (\u0301) so i deleted it
+    blue_rus = visual.TextStim(win, text='j = \u0433\u043e\u043b\u0443\u0431\u043e\u0439',
+                               color="#" + conf["BLUE"], pos=(150, 400), height=conf['FONT_SIZE_INT'])
+    # as above, \u0301 should be the third one in a row
+    pink_rus = visual.TextStim(win, text='k = \u0440\u043e\u0437\u043e\u0432\u044b\u0439',
+                               color="#" + conf["PINK"], pos=(450, 400), height=conf['FONT_SIZE_INT'])
+
+    hints_pl = visual.ImageStim(win=win, image='images/hints_pl.png',
+                                interpolate=True, pos=(conf['HINTS_PLACE_X'], conf['HINTS_PLACE_Y']))
+    hints_rus = visual.ImageStim(win=win, image='images/hints_rus.png',
+                                 interpolate=True, pos=(conf['HINTS_PLACE_X'], conf['HINTS_PLACE_Y']))
+    grey_bar = visual.ImageStim(win=win, image='images/grey_bar.png',
+                                 interpolate=True, pos=(conf['HINTS_PLACE_X'], conf['HINTS_PLACE_Y']))
+    if lang == 'refresh':
+        grey_bar.autoDraw = True
+        grey_bar.draw()
     if lang == 0:
-        red_pl = visual.TextStim(win, text='d = czerwony', color="#" + conf["RED"],
-                                 pos=(-450, 400), height=conf['FONT_SIZE_INT'])
-        green_pl = visual.TextStim(win, text='f = zielony', color="#" + conf["GREEN"],
-                                   pos=(-150, 400), height=conf['FONT_SIZE_INT'])
-        blue_pl = visual.TextStim(win, text='j = niebieski', color="#" + conf["BLUE"],
-                                  pos=(150, 400), height=conf['FONT_SIZE_INT'])
-        pink_pl = visual.TextStim(win, text="k = ró\u017Cowy", color="#" + conf["PINK"],
-                                  pos=(450, 400), height=conf['FONT_SIZE_INT'])
-        red_pl.autoDraw = True
-        green_pl.autoDraw = True
-        blue_pl.autoDraw = True
-        pink_pl.autoDraw = True
-        red_pl.draw()
-        green_pl.draw()
-        blue_pl.draw()
-        pink_pl.draw()
-        if is_cross == 1:
-            draw_cross(win, conf)
-    elif lang == 1:
-        red_rus = visual.TextStim(win, text='d = \u043A\u0440\u0430\u0441\u043D\u044B\u0439',
-                                  color="#" + conf["RED"], pos=(-450, 400), height=conf['FONT_SIZE_INT'])
-        green_rus = visual.TextStim(win, text='f = \u0437\u0435\u043B\u0455\u043D\u044B\u0439',
-                                    color="#" + conf["GREEN"], pos=(-150, 400), height=conf['FONT_SIZE_INT'])
-        # seventh char is crashing the program (\u0301) so i deleted it (Bartek)
-        blue_rus = visual.TextStim(win, text='j = \u0433\u043e\u043b\u0443\u0431\u043e\u0439',
-                                   color="#" + conf["BLUE"], pos=(150, 400), height=conf['FONT_SIZE_INT'])
-        # as above, \u0301 should be the third one in a row
-        pink_rus = visual.TextStim(win, text='k = \u0440\u043e\u0437\u043e\u0432\u044b\u0439',
-                                   color="#" + conf["PINK"], pos=(450, 400), height=conf['FONT_SIZE_INT'])
-        red_rus.autoDraw = True
-        green_rus.autoDraw = True
-        blue_rus.autoDraw = True
-        pink_rus.autoDraw = True
-        red_rus.draw()
-        green_rus.draw()
-        blue_rus.draw()
-        pink_rus.draw()
-        if is_cross == 1:
-            draw_cross(win, conf)
+        hints_pl.autoDraw = True
+        hints_pl.draw()
+
+    if lang == 1:
+        hints_rus.autoDraw = True
+        hints_rus.draw()
 
 
 def draw_cross(win, conf):
@@ -243,15 +244,15 @@ def run_trainee(win, conf, lang):
     clock = core.Clock()
     colors = conf['COLORS_ARRAY_HEX']
     # Start loop for certain amount of trials
+    draw_hints(win, conf, lang)
     for i in range(conf['TRAINEE_SESSIONS_TRIALS_INT']):
         # get random word from adjectives array
         text = random.choice(conf['ADJECTIVES'])
         color = random.choice(colors)
         # draw word in the screen
         win.callOnFlip(clock.reset)
-        # because of winflip we repeat draw_hints in every loop, which is not optimal (Bartek)
+        # because of winflip we repeat draw_hints in every loop, which is not optimal
         draw_cross(win, conf)
-        draw_hints(win, conf, lang, 0)
         adjective = visual.TextStim(win, text=text, color="#" + color, height=conf['FONT_SIZE_STIM_INT'])
         adjective.autoDraw = False
         adjective.draw()
@@ -296,18 +297,20 @@ def run_experiment(win, conf, first):
     win.flip()
     if first == 0:
         db = create_color_db(conf, first)
+        draw_hints(win, conf, 'refresh')
         show_image(win, 'images/Instrukcja1.png')
         engine(win, conf, db, first)
-        show_image(win, 'images/break.jpg')
         win.flip()
+        show_image(win, 'images/break.png')
         db = create_color_db(conf, first + 1)
         engine(win, conf, db, first + 1)
     else:
         db = create_color_db(conf, first)
+        draw_hints(win, conf, 'refresh')
         show_image(win, 'images/Instrukcja2.png')
         engine(win, conf, db, first)
-        show_image(win, 'images/break.jpg')
         win.flip()
+        show_image(win, 'images/break.png')
         db = create_color_db(conf, first - 1)
         engine(win, conf, db, first - 1)
 
@@ -340,12 +343,14 @@ def create_color_db(conf, first):
 
 def engine(win, conf, db, first):
     # Clearing clock just in case
+    win.flip()
     clock = core.Clock()
+    draw_hints(win, conf, lang=first)
+    win.flip()
     for i in range(len(db)):
         win.flip()
         win.callOnFlip(clock.reset)
         draw_cross(win, conf)
-        draw_hints(win, conf, first, 0)
         word = visual.TextStim(win, text=db[i][1], color="#" + db[i][0], height=conf['FONT_SIZE_STIM_INT'])
         word.autoDraw = False
         word.draw()
@@ -353,32 +358,15 @@ def engine(win, conf, db, first):
         key = event.waitKeys(keyList=list(
             conf['REACTION_KEYS']), timeStamped=clock, maxWait=conf['WAIT_FOR_KEY_S'])
         if (key is not None) and str(conf["MAPPING"][key[0][0]]) == str("#" + db[i][0]):
-            #win.flip()
-            #correct = visual.TextStim(win, text="\u2713", color='green')
-            #correct.autoDraw = True
-            #win.flip()
-            #correct.draw()
-            timer(1, conf['SHOW_RESULTS_S'])
-            #win.flip()
             correctness = 1
-            #correct.autoDraw = False
-            #win.flip()
         else:
-            #win.flip()
-           # error = visual.TextStim(win, text='X', color='red')
-           # error.autoDraw = True
-            #win.flip()
-            #error.draw()
-            timer(1, conf['SHOW_RESULTS_S'])
             correctness = 0
-            #error.autoDraw = False
-            #win.flip()
         RESULTS.append([PART_ID, 'PL' if first == 0 else 'RUS',
                         round(key[0][1], conf['DIGIT_AFTER_COMA_RESULTS_INT']) if key else 0,
                         correctness, i + 1])
         # wait certain amount of time to go back to next trial
         timer(1, conf['WAIT_TO_NEXT_TRIALS_S'])
-        win.flip()
+    draw_hints(win, conf, lang='refresh')
 
 
 def timer(counter, seconds, command='pass'):
