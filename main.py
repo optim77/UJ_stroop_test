@@ -15,7 +15,7 @@ from psychopy import visual, event, logging, gui, core
 from misc.screen_misc import get_screen_res, get_frame_rate
 from itertools import combinations_with_replacement, product
 
-
+"""AGATKA"""
 def get_participant_id():
     participant_info = dict()
     participant_info['Participant ID'] = ''
@@ -45,7 +45,7 @@ def save_beh_results():
 
 def show_image(win, file_name, key='f7'):
     """
-    Show instructions in a form of an image.
+    AGATKA:Show instructions in a form of an image.
     """
     image = visual.ImageStim(win=win, image=file_name,
                              interpolate=True)
@@ -132,6 +132,7 @@ def check_framerate(win, conf):
         dlg.show()
         return None
 
+"""AGATKA"""
 RESULTS = list()  # list in which data will be collected
 # Results header
 RESULTS.append(['PART_ID', 'Trial', 'RT', 'Correctness', 'Trial_no', 'Stimuli', 'Congruency', 'Key'])
@@ -190,6 +191,7 @@ def main():
 
 def draw_hints(win, conf, lang):
     """
+       AGATKA:
         Hints in txt for any reason
         There is some problems with autoDraw in text so we use image hints which replace hints in second language
     """
@@ -199,7 +201,7 @@ def draw_hints(win, conf, lang):
                                pos=(-150, 400), height=conf['FONT_SIZE_INT'])
     blue_pl = visual.TextStim(win, text='j = niebieski', color="#" + conf["BLUE"],
                               pos=(150, 400), height=conf['FONT_SIZE_INT'])
-    pink_pl = visual.TextStim(win, text="k = ró\u017Cowy", color="#" + conf["PINK"],
+    pink_pl = visual.TextStim(win, text="k = rï¿½\u017Cowy", color="#" + conf["PINK"],
                               pos=(450, 400), height=conf['FONT_SIZE_INT'])
     red_rus = visual.TextStim(win, text='d = \u043A\u0440\u0430\u0441\u043D\u044B\u0439',
                               color="#" + conf["RED"], pos=(-450, 400), height=conf['FONT_SIZE_INT'])
@@ -229,7 +231,7 @@ def draw_hints(win, conf, lang):
         hints_rus.autoDraw = True
         hints_rus.draw()
 
-
+"""AGATKA"""
 def draw_cross(win, conf):
     cross = visual.TextStim(win, text='+', height=conf['CROSS_SIZE_INT'], color='black')
     cross.autoDraw = True
