@@ -24,7 +24,7 @@ def get_participant_id():
         core.quit()
     return participant_info['Participant ID']
 
-
+"""Kuba.C"""
 def get_now_data():
     now = datetime.now()
     return str(now.strftime("___%m-%d-%Y___%H-%M-%S"))
@@ -121,7 +121,7 @@ def abort_with_error(err):
     logging.critical(err)
     raise Exception(err)
 
-
+"""Kuba.C""" 
 def check_framerate(win, conf):
     frame_rate = get_frame_rate(win)
     if frame_rate != conf['FRAME_RATE']:
@@ -294,7 +294,7 @@ def run_trainee(win, conf, lang):
         timer(1, conf['WAIT_TO_NEXT_TRIALS_S'])
         win.flip()
 
-
+"""Kuba.C"""
 def run_experiment(win, conf, first):
     win.flip()
     if first == 0:
@@ -370,7 +370,7 @@ def engine(win, conf, db, first):
         timer(1, conf['WAIT_TO_NEXT_TRIALS_S'])
     draw_hints(win, conf, lang='refresh')
 
-
+"""Kuba.C""" 
 def timer(counter, seconds, command='pass'):
     """
         There is two types of time counter
